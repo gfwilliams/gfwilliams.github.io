@@ -4,8 +4,8 @@
  <body>
 <canvas id="canvas" style="width:100%;height:100%"></canvas>
 <script>
-var width = 128;
-var height = 128;
+var width = 64;
+var height = 64;
 
 var canvas = document.getElementById("canvas");
 canvas.width = width;
@@ -27,8 +27,27 @@ for (var y=0;y<height;y++) {
   }
 }
 
+function step() {
+ var Ds = 1;
+ var Dt = 0.5;
+ var f=0.055;
+ var k=0.062;
+ var t = 0.01;
+ 
+ for (var y=1;y<height-1;y++) {
+    for (var x=1;x<width-1;x++) {
+      var as = (s[y-1][x] + s[y+1][x] + s[y][x-1] + s[y][x+1]) / 4;
+      var at = (t[y-1][x] + t[y+1][x] + t[y][x-1] + t[y][x+1]) / 4;
+      s[y][x] += (Ds*(as-s[y][x]) - s[y][x]*t[y][x]*t[y][x] + f*(1-s[y][x])) * t;
+      t[y][x] += (Dt*(at-t[y][x]) + s[y][x]*t[y][x]*t[y][x] + (k+f)*t[y][x]) * t;
+    }
+  }  
+}
+
 function animate() {
   requestAnimationFrame( animate );
+  
+  step();
   
   var d = 0;
   for (var y=0;y<height;y++) {
