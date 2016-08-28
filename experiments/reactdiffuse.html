@@ -1,0 +1,30 @@
+<html>
+ <head>
+ </head>
+ <body>
+<canvas></canvas>
+<script>
+var width = 128;
+var height = 128;
+
+var canvas = document.getElementById("canvas");
+canvas.width = width;
+camvas.height = height;
+var ctx = canvas.getContext('2d');
+var img = ctx.createImageData(width, height);
+var d = 0;
+for (var y=0;y<height;y++) {
+  for (var x=0;x<width;x++) {
+    img.data[d] = Math.random()*255;
+    d+=4;
+  }
+}
+
+function animate() {
+  requestAnimationFrame( animate );
+  ctx.putImageData(img, 0, 0);
+}
+animate();
+</script>
+ </body>
+</html>
