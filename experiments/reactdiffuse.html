@@ -33,17 +33,23 @@ function reset() {
   }
 }
 
- var Ds = 1;
+ /*var Ds = 1;
  var Dt = 0.5;
  var f = 0.055;
  var k = 0.062;
- var tm = 0.1;
+ var tm = 0.1;*/
+ var Ds = 1;
+ var Dt = 0.2;
+ var f = 0.15;
+ var k = 0.05;
+ var tm = 0.5;
+
 
 function step() {
- for (var y=1;y<height-1;y++) {
-    for (var x=1;x<width-1;x++) {
-      var as = (s[y-1][x] + s[y+1][x] + s[y][x-1] + s[y][x+1]) / 4;
-      var at = (t[y-1][x] + t[y+1][x] + t[y][x-1] + t[y][x+1]) / 4;
+ for (var y=0;y<height;y++) {
+    for (var x=0;x<width;x++) {
+      var as = (y?s[y-1][x]:0 + (x<width-1)?s[y+1][x]:0 + x?s[y][x-1]:0 + (x<width-1)?s[y][x+1]:0) / 4;
+      var at = (y?t[y-1][x]:0 + (x<width-1)?t[y+1][x]:0 + x?t[y][x-1]:0 + (x<width-1)?t[y][x+1]:0) / 4;
       s2[y][x] = s[y][x] + (Ds*(as-s[y][x]) + f*(1-s[y][x]) - s[y][x]*t[y][x]*t[y][x]) * tm;
       t2[y][x] = t[y][x] + (Dt*(at-t[y][x]) + s[y][x]*t[y][x]*t[y][x] - (k+f)*t[y][x]) * tm;
     }
