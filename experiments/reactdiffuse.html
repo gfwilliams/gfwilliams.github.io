@@ -13,9 +13,12 @@ canvas.height = height;
 var ctx = canvas.getContext('2d');
 var img = ctx.createImageData(width, height);
 var s = [], t = [];
+var s2 = [], t2 = [];
 for (var y=0;y<height;y++) {
   s[y] = new Float32Array(width);
   t[y] = new Float32Array(width);
+  s2[y] = new Float32Array(width);
+  t2[y] = new Float32Array(width);
 }
 var d = 0;
 for (var y=0;y<height;y++) {
@@ -38,8 +41,8 @@ function step() {
     for (var x=1;x<width-1;x++) {
       var as = (s[y-1][x] + s[y+1][x] + s[y][x-1] + s[y][x+1]) / 4;
       var at = (t[y-1][x] + t[y+1][x] + t[y][x-1] + t[y][x+1]) / 4;
-      s[y][x] += (Ds*(as-s[y][x]) - s[y][x]*t[y][x]*t[y][x] + f*(1-s[y][x])) * tm;
-      t[y][x] += (Dt*(at-t[y][x]) + s[y][x]*t[y][x]*t[y][x] - (k+f)*t[y][x]) * tm;
+      s2[y][x] = s[y][x] + (Ds*(as-s[y][x]) - s[y][x]*t[y][x]*t[y][x] + f*(1-s[y][x])) * tm;
+      t2[y][x] = t[y][x] + (Dt*(at-t[y][x]) + s[y][x]*t[y][x]*t[y][x] - (k+f)*t[y][x]) * tm;
     }
   }  
 }
@@ -48,6 +51,9 @@ function animate() {
   requestAnimationFrame( animate );
   
   step();
+  var tt;
+  tt = t; t = t2; t2 = tt;
+  tt = s; s = s2; s2 = tt;
   
   var d = 0;
   for (var y=0;y<height;y++) {
