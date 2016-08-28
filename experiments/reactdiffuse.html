@@ -20,13 +20,16 @@ for (var y=0;y<height;y++) {
   s2[y] = new Float32Array(width);
   t2[y] = new Float32Array(width);
 }
-var d = 0;
-for (var y=0;y<height;y++) {
-  for (var x=0;x<width;x++) {
-    s[y][x] = Math.random();
-    t[y][x] = Math.random();
-    img.data[d+3] = 255;
-    d+=4;
+
+function reset() {
+  var d = 0;
+  for (var y=0;y<height;y++) {
+    for (var x=0;x<width;x++) {
+      s[y][x] = s2[y][x] = Math.random();
+      t[y][x] = t2[y][x] = Math.random();
+      img.data[d+3] = 255;
+      d+=4;
+    }
   }
 }
 
@@ -34,14 +37,14 @@ for (var y=0;y<height;y++) {
  var Dt = 0.5;
  var f = 0.055;
  var k = 0.062;
- var tm = 0.01;
+ var tm = 0.1;
 
 function step() {
  for (var y=1;y<height-1;y++) {
     for (var x=1;x<width-1;x++) {
       var as = (s[y-1][x] + s[y+1][x] + s[y][x-1] + s[y][x+1]) / 4;
       var at = (t[y-1][x] + t[y+1][x] + t[y][x-1] + t[y][x+1]) / 4;
-      s2[y][x] = s[y][x] + (Ds*(as-s[y][x]) - s[y][x]*t[y][x]*t[y][x] + f*(1-s[y][x])) * tm;
+      s2[y][x] = s[y][x] + (Ds*(as-s[y][x]) + f*(1-s[y][x]) - s[y][x]*t[y][x]*t[y][x]) * tm;
       t2[y][x] = t[y][x] + (Dt*(at-t[y][x]) + s[y][x]*t[y][x]*t[y][x] - (k+f)*t[y][x]) * tm;
     }
   }  
@@ -66,6 +69,8 @@ function animate() {
   
   ctx.putImageData(img, 0, 0);
 }
+
+reset();
 animate();
 </script>
  </body>
