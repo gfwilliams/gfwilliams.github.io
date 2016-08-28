@@ -39,11 +39,12 @@ function interp(z,x,y) {
   if (yi>=height-1) {yi=height-2;ya=1;}
   if (xi<0) {xi=0;xa=0;}
   if (yi<0) {yi=0;ya=0;}
-  return 
+  var r = 
     z[yi][xi]*(1-xa)*(1-ya) +
     z[yi][xi+1]*(xa)*(1-ya) +
     z[yi+1][xi]*(1-xa)*(ya) +
     z[yi+1][xi+1]*(xa)*(ya);
+  return r;
 }
 
 function reset() {
