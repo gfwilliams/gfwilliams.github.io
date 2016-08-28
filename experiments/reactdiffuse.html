@@ -100,7 +100,7 @@ function animate() {
         var dx = x-mousex;
         var dy = y-mousey;
         var d = Math.sqrt(dx*dx + dy*dy);
-        var amt = 1 / (2+d);
+        var amt = -1 / (1+d);
         var nx = x + dx*amt/d;
         var ny = y + dy*amt/d;
         s[y][x] = interp(s2,nx,ny);
