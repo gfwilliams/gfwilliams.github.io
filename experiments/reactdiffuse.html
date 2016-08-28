@@ -4,8 +4,8 @@
  <body>
 <canvas id="canvas" style="width:100%;height:100%"></canvas>
 <script>
-var width = 64;
-var height = 64;
+var width = 128;
+var height = 128;
 var mousex, mousey;
 
 var canvas = document.getElementById("canvas");
@@ -84,7 +84,7 @@ function step() {
       as /= n;
       at /= n;
       s2[y][x] = s[y][x] + (Ds*(as-s[y][x]) + f*(1-s[y][x]) - s[y][x]*t[y][x]*t[y][x]) * tm;
-      t2[y][x] = t[y][x] + (Dt*(at-t[y][x]) + s[y][x]*t[y][x]*t[y][x] - (k+f)*t[y][x]) * tm;
+      t2[y][x] = t[y][x] + (Dt*(at-t[y][x]) + s[y][x]*t[y][x]*t[y][x] - (k+f)*t[y][x]) * tm + Math.random()*0.05;
     }
   }  
 }
