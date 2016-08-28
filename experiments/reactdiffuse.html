@@ -100,11 +100,11 @@ function animate() {
         var dx = x-mousex;
         var dy = y-mousey;
         var d = Math.sqrt(dx*dx + dy*dy);
-        var amt = 8 / (8+d);
+        var amt = 8 / (2+d);
         var nx = x + dx*amt/d;
         var ny = y + dy*amt/d;
-        s[y][x] = interp(s2,ny,nx);
-        t[y][x] = interp(t2,ny,nx);
+        s[y][x] = interp(s2,nx,ny);
+        t[y][x] = interp(t2,nx,ny);
       }
     }
   } else {
