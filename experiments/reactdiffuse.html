@@ -6,10 +6,19 @@
 <script>
 var width = 64;
 var height = 64;
+var mousex, mousey;
 
 var canvas = document.getElementById("canvas");
 canvas.width = width;
 canvas.height = height;
+canvas.onmousemove = function(e) {
+  if (e.buttons) {
+    mousex = e.clientX;
+    mousey = e.clientY;
+  } else {
+    mousex = mousey = undefined;
+  }
+};
 var ctx = canvas.getContext('2d');
 var img = ctx.createImageData(width, height);
 var s = [], t = [];
@@ -67,9 +76,25 @@ function animate() {
   requestAnimationFrame( animate );
   
   step();
-  var tt;
-  tt = t; t = t2; t2 = tt;
-  tt = s; s = s2; s2 = tt;
+  
+  if (mousex!==undefined) {
+    for (var y=0;y<height;y++) {
+      for (var x=0;x<width;x++) {
+        var dx = x-mousex;
+        var dy = y-mousey;
+        var d = Math.sqrt(dx*dx + dy*dy);
+        var amt = 8 / (8+d);
+        var nx = x + dx*amt/d;
+        var ny = y + dy*amt/d;
+        s[y][x] = s2[ny][nx];
+        t[y][x] = t2[ny][nx];
+      }
+    }
+  } else {
+    var tt;
+    tt = t; t = t2; t2 = tt;
+    tt = s; s = s2; s2 = tt;
+  }
   
   var d = 0;
   for (var y=0;y<height;y++) {
@@ -82,6 +107,8 @@ function animate() {
   
   ctx.putImageData(img, 0, 0);
 }
+
+
 
 reset();
 animate();
