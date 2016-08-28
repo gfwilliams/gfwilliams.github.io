@@ -11,10 +11,10 @@ var mousex, mousey;
 var canvas = document.getElementById("canvas");
 canvas.width = width;
 canvas.height = height;
-canvas.onmousemove = function(e) {
+canvas.onmousemove = canvas.onmousedown = canvas.onmouseup = function(e) {
   if (e.buttons) {
-    mousex = e.clientX;
-    mousey = e.clientY;
+    mousex = e.clientX * width / canvas.offsetWidth;
+    mousey = e.clientY * height / canvas.offsetHeight;
   } else {
     mousex = mousey = undefined;
   }
@@ -100,7 +100,7 @@ function animate() {
         var dx = x-mousex;
         var dy = y-mousey;
         var d = Math.sqrt(dx*dx + dy*dy);
-        var amt = 8 / (2+d);
+        var amt = 1 / (2+d);
         var nx = x + dx*amt/d;
         var ny = y + dy*amt/d;
         s[y][x] = interp(s2,nx,ny);
