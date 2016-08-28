@@ -9,19 +9,34 @@ var height = 128;
 
 var canvas = document.getElementById("canvas");
 canvas.width = width;
-camvas.height = height;
+canvas.height = height;
 var ctx = canvas.getContext('2d');
 var img = ctx.createImageData(width, height);
+var s = [], t = [];
+for (var y=0;y<height;y++) {
+  s[y] = new Float32Array(width);
+  t[y] = new Float32Array(width);
+}
 var d = 0;
 for (var y=0;y<height;y++) {
   for (var x=0;x<width;x++) {
-    img.data[d] = Math.random()*255;
-    d+=4;
+    s[y][x] = Math.random();
+    t[y][x] = Math.random();
   }
 }
 
 function animate() {
   requestAnimationFrame( animate );
+  
+  var d = 0;
+  for (var y=0;y<height;y++) {
+    for (var x=0;x<width;x++) {
+      img.data[d] = s[y][x]*255;
+      img.data[d+1] = t[y][x]*255;
+      d+=4;
+    }
+  }   
+  
   ctx.putImageData(img, 0, 0);
 }
 animate();
