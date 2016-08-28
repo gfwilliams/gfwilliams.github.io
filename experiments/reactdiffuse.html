@@ -30,6 +30,22 @@ for (var y=0;y<height;y++) {
   t2[y] = new Float32Array(width);
 }
 
+function interp(z,x,y) {
+  var xi=0|x;
+  var y1=0|y;
+  var xa=x-xi;
+  var ya=y-yi;
+  if (xi>=width-1) {xi=width-2;xa=1;}
+  if (yi>=height-1) {yi=height-2;ya=1;}
+  if (xi<0) {xi=0;xa=0;}
+  if (yi<0) {yi=0;ya=0;}
+  return 
+    z[yi][xi]*(1-xa)*(1-ya) +
+    z[yi][xi+1]*(xa)*(1-ya) +
+    z[yi+1][xi]*(1-xa)*(ya) +
+    z[yi+1][xi+1]*(xa)*(ya);
+}
+
 function reset() {
   var d = 0;
   for (var y=0;y<height;y++) {
@@ -86,8 +102,8 @@ function animate() {
         var amt = 8 / (8+d);
         var nx = x + dx*amt/d;
         var ny = y + dy*amt/d;
-        s[y][x] = s2[ny][nx];
-        t[y][x] = t2[ny][nx];
+        s[y][x] = interp(s2,ny,nx);
+        t[y][x] = interp(t2,ny,nx);
       }
     }
   } else {
