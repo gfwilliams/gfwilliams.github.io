@@ -77,7 +77,8 @@
 
 				document.addEventListener( 'mousedown', onDocumentMouseDown, false );
 				document.addEventListener( 'mouseup', onDocumentMouseUp, false );
-			  document.addEventListener( 'touchstart', onDocumentTouchStart, false );
+			        document.addEventListener( 'touchstart', onDocumentTouchStart, false );
+			        document.addEventListener( 'touchend', onDocumentMouseUp, false );
 				window.addEventListener( 'resize', onWindowResize, false );
 
 				var gui = new dat.GUI();
