@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title></title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				margin: 0px;
+				background-color: #000000;
+				overflow: hidden;
+			}
+		</style>
+	</head>
+	<body>
+
+		<script src="js/three.js"></script>
+    <script src="js/TrackballControls.js"></script>
+    <script src="js/MarchingCubes.js"></script>
+
+		<script>
+
+			var camera, scene, renderer;
+			var mesh;
+
+			init();
+			animate();
+
+			function init() {
+        // shamelessly stolen from https://www.clicktorelease.com/code/bumpy-metaballs/
+
+				camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 );
+				camera.position.z = 400;
+        controls = new THREE.TrackballControls( camera );
+
+				scene = new THREE.Scene();
+
+				var geometry = new THREE.BoxBufferGeometry( 200, 200, 200 );
+				var material = new THREE.MeshNormalMaterial();
+				//mesh = new THREE.Mesh( geometry, material );
+				//scene.add( mesh );
+
+        resolution = 50;
+        numBlobs = 20;
+
+        effect = new THREE.MarchingCubes( resolution, material, false, false );
+        effect.scale.set( 100, 100, 100 );
+        scene.add( effect );
+        updateCubes( effect, 0, numBlobs );
+
+				renderer = new THREE.WebGLRenderer();
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				document.body.appendChild( renderer.domElement );
+
+				//
+
+				window.addEventListener( 'resize', onWindowResize, false );
+
+			}
+
+      function updateCubes( object, time, numblobs, floor, wallx, wallz ) {
+
+      	object.reset();
+
+      	// fill the field with some metaballs
+
+      	var i, ballx, bally, ballz, subtract, strength;
+
+      	subtract = 12;
+      	strength = 1.2 / ( ( Math.sqrt( numblobs ) - 1 ) / 4 + 1 );
+
+      	for ( i = 0; i < numblobs; i++ ) {
+
+      		ballx = Math.sin( i + 1.26 * time * ( 1.03 + 0.5 * Math.cos( 0.21 * i ) ) ) * 0.27 + 0.5;
+      		bally = Math.cos( i + 1.12 * time * 0.21 * Math.sin( ( 0.72 + 0.83 * i ) ) ) * 0.27 + 0.5;
+      		ballz = Math.cos( i + 1.32 * time * 0.1 * Math.sin( ( 0.92 + 0.53 * i ) ) ) * 0.27 + 0.5;
+
+      		object.addBall( ballx, bally, ballz, strength, subtract );
+
+      	}
+
+      	if( floor ) object.addPlaneY( 2, 12 );
+      	if( wallz ) object.addPlaneZ( 2, 12 );
+      	if( wallx ) object.addPlaneX( 2, 12 );
+
+      };
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+        controls.handleResize();
+			}
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+
+        updateCubes( effect, .0005 * ( Date.now()  ), numBlobs );
+
+        controls.update();
+        //mesh.rotation.x += 0.005;
+				//mesh.rotation.y += 0.01;
+
+				renderer.render( scene, camera );
+
+			}
+
+		</script>
+
+	</body>
+</html>

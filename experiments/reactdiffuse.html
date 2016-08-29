@@ -3,6 +3,7 @@
  </head>
  <body>
 <canvas id="canvas" style="width:100%;height:100%"></canvas>
+<script src="js/dat.gui.js"></script>
 <script>
 var width = 128;
 var height = 128;
@@ -11,6 +12,12 @@ var mousex, mousey;
 var canvas = document.getElementById("canvas");
 canvas.width = width;
 canvas.height = height;
+canvas.ontouchstart = function( event ) {
+  event.preventDefault();
+  event.clientX = event.touches[0].clientX;
+  event.clientY = event.touches[0].clientY;
+  canvas.onmousemove( event );
+};
 canvas.onmousemove = canvas.onmousedown = canvas.onmouseup = function(e) {
   if (e.buttons) {
     mousex = e.clientX * width / canvas.offsetWidth;
@@ -39,7 +46,7 @@ function interp(z,x,y) {
   if (yi>=height-1) {yi=height-2;ya=1;}
   if (xi<0) {xi=0;xa=0;}
   if (yi<0) {yi=0;ya=0;}
-  var r = 
+  var r =
     z[yi][xi]*(1-xa)*(1-ya) +
     z[yi][xi+1]*(xa)*(1-ya) +
     z[yi+1][xi]*(1-xa)*(ya) +
@@ -59,41 +66,39 @@ function reset() {
   }
 }
 
- /*var Ds = 1;
- var Dt = 0.5;
- var f = 0.055;
- var k = 0.062;
- var tm = 0.1;*/
- var Ds = 1;
- var Dt = 0.25;
- var f = 0.12; 
- var k = 0.055;
- var tm = 0.5;
+var params = {
+ ds : 1,
+ dt : 0.25,
+ f : 0.12,
+ k : 0.055,
+};
+var tm = 0.5;
 
 
 function step() {
  for (var y=0;y<height;y++) {
     for (var x=0;x<width;x++) {
       var n = 0;
-      var as = 0;(y?s[y-1][x]:0 + (x<width-1)?s[y+1][x]:0 + x?s[y][x-1]:0 + (x<width-1)?s[y][x+1]:0) / 4;
-      var at = 0;(y?t[y-1][x]:0 + (x<width-1)?t[y+1][x]:0 + x?t[y][x-1]:0 + (x<width-1)?t[y][x+1]:0) / 4;
+      var as = 0;
+      var at = 0;
       if (x) { as+=s[y][x-1]; at+=t[y][x-1]; n++; }
       if (y) { as+=s[y-1][x]; at+=t[y-1][x]; n++; }
       if (x<width-1) { as+=s[y][x+1]; at+=t[y][x+1]; n++; }
       if (y<height-1) { as+=s[y+1][x]; at+=t[y+1][x]; n++; }
       as /= n;
       at /= n;
-      s2[y][x] = s[y][x] + (Ds*(as-s[y][x]) + f*(1-s[y][x]) - s[y][x]*t[y][x]*t[y][x]) * tm;
-      t2[y][x] = t[y][x] + (Dt*(at-t[y][x]) + s[y][x]*t[y][x]*t[y][x] - (k+f)*t[y][x]) * tm;
+      var stt = s[y][x]*t[y][x]*t[y][x];
+      s2[y][x] = s[y][x] + (params.ds*(as-s[y][x]) + params.f*(1-s[y][x]) - stt) * tm;
+      t2[y][x] = t[y][x] + (params.dt*(at-t[y][x]) + stt - (params.k+params.f)*t[y][x]) * tm;
     }
-  }  
+  }
 }
 
 function animate() {
   requestAnimationFrame( animate );
-  
+
   step();
-  
+
   if (mousex!==undefined) {
     for (var y=0;y<height;y++) {
       for (var x=0;x<width;x++) {
@@ -112,20 +117,20 @@ function animate() {
     tt = t; t = t2; t2 = tt;
     tt = s; s = s2; s2 = tt;
   }
-  
+
   var d = 0;
   for (var y=0;y<height;y++) {
     for (var x=0;x<width;x++) {
-      /*img.data[d] = s[y][x]*255;
-      img.data[d+1] = t[y][x]*255;*/
-      var a = 128 + (s[y][x]-t[y][x])*1024;
+      img.data[d] = s[y][x]*255;
+      img.data[d+1] = t[y][x]*255;
+    /*  var a = 128 + (s[y][x]-t[y][x])*1024;
       if (a<0) a=0;
       if (a>255) a=255;
-      img.data[d] = img.data[d+1] = img.data[d+2] = a;
+      img.data[d] = img.data[d+1] = img.data[d+2] = a;*/
       d+=4;
     }
-  }   
-  
+  }
+
   ctx.putImageData(img, 0, 0);
 }
 
@@ -133,6 +138,14 @@ function animate() {
 
 reset();
 animate();
+
+var gui = new dat.GUI();
+gui.add( params, 'ds', 0.0, 1.0, 0.001 );
+gui.add( params, 'dt', 0.0, 1.0, 0.001 );
+gui.add( params, 'f', 0.0, 0.2, 0.001 );
+gui.add( params, 'k', 0.0, 0.1, 0.001 );
+gui.add({ reset:reset }, "reset");
+
 </script>
  </body>
 </html>

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title></title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				margin: 0px;
+				background-color: #000000;
+				overflow: hidden;
+			}
+		</style>
+	</head>
+	<body>
+
+		<script src="js/three.js"></script>
+    <script src="js/TrackballControls.js"></script>
+    <script src="js/MarchingCubes.js"></script>
+		<script src="js/dat.gui.js"></script>
+
+		<script>
+
+			var res = 30;
+			var res2 = res*res;
+
+			var params = {
+			 ds : 1,
+		   dt : 0.25,
+		   f : 0.12,
+		   k : 0.055,
+		 };
+		  var fedge = 0.0; // make sure we 'smooth off' the edge
+		  var tm = 0.5;
+
+			var camera, scene, renderer;
+			var volume;
+			var mousex,mousey,mousez;
+
+			var s = new Float32Array(res*res*res);
+			var t = new Float32Array(res*res*res);
+			var s2 = new Float32Array(res*res*res);
+			var t2 = new Float32Array(res*res*res);
+
+			init();
+			animate();
+
+			function init() {
+				camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.01, 10 );
+				camera.position.z = 2;
+        controls = new THREE.TrackballControls( camera );
+
+				scene = new THREE.Scene();
+
+				var light = new THREE.AmbientLight( 0x202020 ); // soft white light
+				scene.add( light );
+				var light = new THREE.DirectionalLight( 0xffffff );
+				light.position.set( 0, 1, 1 ).normalize();
+				scene.add(light);
+
+        //var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+				var material = new THREE.MeshPhongMaterial( {
+				    color: 0x2194ce,
+				    specular: 0x111111,
+				    shininess: 30
+				} );
+				//var material = new THREE.MeshNormalMaterial();
+        volume = new THREE.MarchingCubes( res, material, false, false );
+        scene.add( volume );
+
+				renderer = new THREE.WebGLRenderer();
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				document.body.appendChild( renderer.domElement );
+
+				//
+
+				document.addEventListener( 'mousedown', onDocumentMouseDown, false );
+				document.addEventListener( 'mouseup', onDocumentMouseUp, false );
+			  document.addEventListener( 'touchstart', onDocumentTouchStart, false );
+				window.addEventListener( 'resize', onWindowResize, false );
+
+				var gui = new dat.GUI();
+				gui.add( params, 'ds', 0.0, 1.0, 0.001 );
+				gui.add( params, 'dt', 0.0, 1.0, 0.001 );
+				gui.add( params, 'f', 0.0, 0.2, 0.001 );
+				gui.add( params, 'k', 0.0, 0.1, 0.001 );
+				gui.add({ reset:reset }, "reset");
+			}
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+        controls.handleResize();
+			}
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+
+        step();
+
+        controls.update();
+
+				renderer.render( scene, camera );
+			}
+
+			function reset() {
+				var i = 0;
+				for (var z=0;z<res;z++) {
+					for (var y=0;y<res;y++) {
+					  for (var x=0;x<res;x++) {
+							var n = Math.random();
+				      s[i] = s2[i] = n;
+				      t[i] = t2[i] = 1-n;
+							i++;
+					  }
+					}
+				}
+			}
+
+			function interp(v,x,y,z) {
+			  var xi=0|x;
+			  var yi=0|y;
+			  var zi=0|z;
+			  var xa=x-xi;
+			  var ya=y-yi;
+				var za=z-zi;
+			  if (xi>=res-1) {xi=res-2;xa=1;}
+			  if (yi>=res-1) {yi=res-2;ya=1;}
+			  if (zi>=res-1) {zi=res-2;za=1;}
+			  if (xi<0) {xi=0;xa=0;}
+			  if (yi<0) {yi=0;ya=0;}
+				if (zi<0) {zi=0;za=0;}
+			  var r =
+			    v[(xi)+(yi)*res+(zi)*res2] * (1-xa) * (1-ya) * (1-za) +
+			    v[(xi+1)+(yi)*res+(zi)*res2] * (xa) * (1-ya) * (1-za) +
+					v[(xi)+(yi+1)*res+(zi)*res2] * (1-xa) * (ya) * (1-za) +
+					v[(xi+1)+(yi+1)*res+(zi)*res2] * (xa) * (ya) * (1-za) +
+					v[(xi)+(yi)*res+(zi+1)*res2] * (1-xa) * (1-ya) * (za) +
+					v[(xi+1)+(yi)*res+(zi+1)*res2] * (xa) * (1-ya) * (za) +
+					v[(xi)+(yi+1)*res+(zi+1)*res2] * (1-xa) * (ya) * (za) +
+					v[(xi+1)+(yi+1)*res+(zi+1)*res2] * (xa) * (ya) * (za);
+			  return r;
+			}
+
+			function step() {
+				var i = 0;
+				for (var z=0;z<res;z++) {
+					for (var y=0;y<res;y++) {
+					  for (var x=0;x<res;x++) {
+					    var n = 0;
+					    var as = 0;
+					    var at = 0;
+					    if (x) { as+=s[i-1]; at+=t[i-1]; n++; }
+					    if (y) { as+=s[i-res]; at+=t[i-res]; n++; }
+						  if (z) { as+=s[i-res2]; at+=t[i-res2]; n++; }
+					    if (x<res-1) { as+=s[i+1]; at+=t[i+1]; n++; }
+					    if (y<res-1) { as+=s[i+res]; at+=t[i+res]; n++; }
+							if (z<res-1) { as+=s[i+res2]; at+=t[i+res2]; n++; }
+					    as /= n;
+					    at /= n;
+							var stt = s[i]*t[i]*t[i];
+							var ff = (n!=6) ? fedge : params.f;
+					    s2[i] = s[i] + (params.ds*(as-s[i]) + ff*(1-s[i]) - stt) * tm;
+					    t2[i] = t[i] + (params.dt*(at-t[i]) + stt - (params.k+ff)*t[i]) * tm;
+							i++;
+					  }
+					}
+				}
+				if (mousex!==undefined) {
+					var i = 0;
+					for (var z=0;z<res;z++) {
+						for (var y=0;y<res;y++) {
+						  for (var x=0;x<res;x++) {
+								var dx = x-mousex;
+								var dy = y-mousey;
+								var dz = z-mousez;
+								var d = Math.sqrt(dx*dx + dy*dy + dz*dz);
+								var amt = -1 / (1+d);
+								var nx = x + dx*amt/d;
+								var ny = y + dy*amt/d;
+								var nz = z + dz*amt/d;
+								s[i] = interp(s2,nx,ny,nz);
+								t[i] = interp(t2,nx,ny,nz);
+								i++;
+							}
+						}
+					}
+				} else {
+					var tt;
+			    tt = t; t = t2; t2 = tt;
+			    tt = s; s = s2; s2 = tt;
+				}
+
+				volume.reset();
+				for (var i=0;i<res*res*res;i++) {
+					volume.field[i] = volume.isolation - (s[i]-t[i])*256;
+				}
+			}
+
+
+						function onDocumentTouchStart( event ) {
+
+							event.preventDefault();
+
+							event.clientX = event.touches[0].clientX;
+							event.clientY = event.touches[0].clientY;
+							onDocumentMouseDown( event );
+
+						}
+
+						function onDocumentMouseDown( event ) {
+
+							event.preventDefault();
+							var mouse = new THREE.Vector2();
+							mouse.x = ( event.clientX / renderer.domElement.clientWidth ) * 2 - 1;
+							mouse.y = - ( event.clientY / renderer.domElement.clientHeight ) * 2 + 1;
+
+							var raycaster = new THREE.Raycaster();
+							raycaster.setFromCamera( mouse, camera );
+
+
+							var geometry = volume.generateGeometry();
+							var material = new THREE.MeshNormalMaterial();
+							var mesh = new THREE.Mesh( geometry, material );
+
+							var intersects = raycaster.intersectObjects( [ mesh ] );
+							console.log(intersects);
+
+							if ( intersects.length > 0 ) {
+							  var p = intersects[ 0 ].point;
+								mousex = (p.x+1) * res / 2;
+								mousey = (p.y+1) * res / 2;
+								mousez = (p.z+1) * res / 2;
+							}
+
+					}
+					function onDocumentMouseUp( event ) {
+						mousex = mousey = mousez = undefined;
+					}
+
+					function guiChanged() {
+
+						var uniforms = material.uniforms;
+
+						uniforms[ 'parallaxScale' ].value = -1.0 * effectController.scale;
+						uniforms[ 'parallaxMinLayers' ].value = effectController.minLayers;
+						uniforms[ 'parallaxMaxLayers' ].value = effectController.maxLayers;
+
+						material.defines = {};
+						material.defines[THREE.ParallaxShader.modes[effectController.mode]] = '';
+						material.needsUpdate = true;
+
+					}
+
+			reset();
+
+		</script>
+
+	</body>
+</html>
