@@ -18,6 +18,9 @@ canvas.ontouchstart = function( event ) {
   event.clientY = event.touches[0].clientY;
   canvas.onmousemove( event );
 };
+canvas.ontouchend = function() {
+  mousex = mousey = undefined;
+};
 canvas.onmousemove = canvas.onmousedown = canvas.onmouseup = function(e) {
   if (e.buttons) {
     mousex = e.clientX * width / canvas.offsetWidth;
