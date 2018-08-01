@@ -10,7 +10,7 @@
   
   function log(x) {
     console.log(x);
-    document.getElementById("start").innerHTML += x+"\n";
+    document.getElementById("log").innerHTML += x+"\n";
   }
   
   annyang.addCommands({
@@ -34,6 +34,7 @@
       log("Connected to Web Bluetooth!");
       // Start listening.
       annyang.start();
+      log("Listening...");
      });
    };
 </script>
