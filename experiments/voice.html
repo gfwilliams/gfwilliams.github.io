@@ -6,6 +6,8 @@
 <button id="start">Start!</button>
 <pre id="log"></pre>
 <script>
+  Puck.debug=3;
+  
   function log(x) {
     console.log(x);
     document.getElementById("start").innerHTML += x+"\n";
