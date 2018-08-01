@@ -2,16 +2,34 @@
 <body>
 <script src="//cdnjs.cloudflare.com/ajax/libs/annyang/2.6.0/annyang.min.js"></script>
 <script src="//www.puck-js.com/puck.js"></script>
+  <p>This connects via Web Bluetooth</p>
 <button id="start">Start!</button>
+<pre id="log"></pre>
 <script>
+  function log(x) {
+    console.log(x);
+    document.getElementById("start").innerHTML += x+"\n";
+  }
+  
   annyang.addCommands({
-    'turn on': function() { Puck.write("LED.set();\n"); },
-    'turn off': function() { Puck.write("LED.reset();\n"); }
+    'turn on': function() { 
+      log("Command: Turn on");
+      Puck.write("LED.set();\n"); 
+    },
+    'turn off': function() { 
+      log("Command: Turn off");
+      Puck.write("LED.reset();\n"); 
+    }
+  });
+  
+  annyang.addCallback('result', function(x) {
+     console.log("Got: "+x);
   });
 
   document.getElementById("start").onclick = function() {
     // start a connection
     Puck.write("",function() {
+      log("Connected to Web Bluetooth!");
       // Start listening.
       annyang.start();
      });
