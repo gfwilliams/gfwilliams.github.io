@@ -1,0 +1,20 @@
+<html>
+<body>
+<script src="//cdnjs.cloudflare.com/ajax/libs/annyang/2.6.0/annyang.min.js"></script>
+<script src="//www.puck-js.com/puck.js"></script>
+<button id="start">Start!</button>
+<script>
+  annyang.addCommands({
+    'turn on': function() { Puck.write("LED.set();\n"); },
+    'turn off': function() { Puck.write("LED.reset();\n"); }
+  });
+
+  document.getElementById("start").onclick = function() {
+    // start a connection
+    Puck.write("",function() {
+      // Start listening.
+      annyang.start();
+     });
+   };
+</script>
+</body>
