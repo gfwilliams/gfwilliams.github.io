@@ -29,8 +29,8 @@
   });
 
   document.getElementById("start").onclick = function() {
-    // start a connection
-    Puck.write("",function() {
+    // start a connection, write ctrl-c to clear the input line
+    Puck.write("\x03",function() {
       log("Connected to Web Bluetooth!");
       // Start listening.
       annyang.start();
