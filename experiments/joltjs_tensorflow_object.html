@@ -266,8 +266,8 @@ function predictWebcam() {
         let w = video.clientWidth;
         let midx = theBear.bbox[0] + (theBear.bbox[2]/2);
         let amt = (midx / w) - 0.5;
-        motora = Math.max(0, 0.5+amt);
-        motorb = Math.max(0, 0.5-amt);
+        motora = Math.max(0, 0.5-amt);
+        motorb = Math.max(0, 0.5+amt);
       }
       Puck.write(`H1.pwm(${motora});H2.pwm(${motorb});\n`, () => { 
         bleBusy = false; 
