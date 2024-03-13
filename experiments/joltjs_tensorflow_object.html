@@ -152,7 +152,7 @@ var bleBusy = true;
 Puck.modal(function() {
   Puck.write("reset();\n", function() {
     setTimeout(function() {
-      Puck.write("Jolt.setDriverMode(0,true);LED3.set();NRF.on('disconnect', reset);\n", function() {
+      Puck.write("\x10Jolt.setDriverMode(0,true);LED3.set();NRF.on('disconnect', reset);\n", function() {
         bleBusy = false;
       });
     }, 1000);
@@ -269,7 +269,7 @@ function predictWebcam() {
         motora = Math.max(0, 0.5-amt);
         motorb = Math.max(0, 0.5+amt);
       }
-      Puck.write(`H1.pwm(${motora});H2.pwm(${motorb});\n`, () => { 
+      Puck.write(`\x10H1.pwm(${motora});H2.pwm(${motorb});\n`, () => { 
         bleBusy = false; 
       });
     }
