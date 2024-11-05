@@ -12,15 +12,15 @@ http://creativecommons.org/publicdomain/zero/1.0/
   </head>
   <body>
     <p>Allow this website to use your webcam and turn on a <a href="https://www.espruino.com/BLE+Printers">Bluetooth printer</a>, then click the 🔴 button.</p>
-    <video id="v" width="360" height="360" style="display:none" muted></video>
-    <canvas id="c" width="360" height="360"></canvas>
+    <video id="v" width="180" height="180" style="display:none" muted></video>
+    <canvas id="c" width="180" height="180"></canvas>
     <button id="shutter" style="font-size:100px;vertical-align:top;margin-top:70px;"">🔴</button>
     <br/>
 
     <p><a href="https://github.com/gfwilliams/gfwilliams.github.io/blob/master/experiments/polaroid.html">GitHub</a></p>
   <script>
 var video, width, height, context;
-const IMAGESIZE = 360;
+const IMAGESIZE = 180;
 var bmp = new Uint8Array((IMAGESIZE*IMAGESIZE) >> 3); // our 1 bit bmp
 var printer, printerWriteChar;
 var constraints = {video: { facingMode: 'user', aspectRatio: {ideal: 1} }, audio:false};
@@ -104,8 +104,8 @@ let BLE_OPTIONS = {
 
     function sender(resolve, reject) {
       if (d.length) {
-        var v = d.slice(0,512);
-        d = d.slice(512);
+        var v = d.slice(0,20);
+        d = d.slice(20);
         printerWriteChar.writeValue(v).then(function() {
           sender(resolve, reject);
         }).catch(reject);
@@ -121,7 +121,7 @@ let BLE_OPTIONS = {
     d[0] = 29;  // Print raster bitmap
     d[1] = 118; // Print raster bitmap
     d[2] = 48; // Print raster bitmap
-    d[3] = 0;  // Normal 203.2 DPI
+    d[3] = 51;  // Quad (100 DPI)
     d[4] = width>>3;
     d[5] = 0;
     d[6] = height&255;
