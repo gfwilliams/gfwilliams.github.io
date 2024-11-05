@@ -1,0 +1,168 @@
+<html>
+  <head>
+<!-- 2024 Gordon Williams, gw@pur3.co.uk
+
+Any copyright is dedicated to the Public Domain.
+http://creativecommons.org/publicdomain/zero/1.0/
+
+-->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=320, initial-scale=1">
+    <title>Black and white Polaroid</title>
+  </head>
+  <body>
+    <p>Allow this website to use your webcam and turn on a <a href="https://www.espruino.com/BLE+Printers">Bluetooth printer</a>, then click the 🔴 button.</p>
+    <video id="v" width="256" height="256" style="display:none" muted></video>
+    <canvas id="c" width="256" height="256"></canvas>
+    <button id="shutter" style="font-size:100px;vertical-align:top;margin-top:70px;"">🔴</button>
+    <br/>
+
+    <p><a href="https://github.com/gfwilliams/gfwilliams.github.io/blob/master/experiments/polaroid.html">GitHub</a></p>
+  <script>
+var video, width, height, context;
+var bmp = new Uint8Array(256*256 >> 3); // our 1 bit bmp
+var printer, printerWriteChar;
+var constraints = {video: true, audio:false};
+const DITHER = [
+      [ 0, 2 ],
+      [ 3, 1 ]
+    ];
+let BLE_OPTIONS = {
+  filters: [
+    { services: ["000018f0-0000-1000-8000-00805f9b34fb"] }
+  ]
+};
+
+
+function initialize() {
+navigator.mediaDevices.enumerateDevices().then(function(devices) {
+  devices.forEach(function(device) {
+    console.log(device.kind + ": " + device.label +
+                " id = " + device.deviceId/*, JSON.stringify(device,null,2)*/);
+    if (device.kind=="videoinput" /*&& constraints.video===true*/)
+      constraints.video = { optional: [{sourceId: device.deviceId}, { fillLightMode: "on" }] };
+  });
+  initialize2();
+}).catch(function(err) {
+  console.log(err.name + ": " + err.message);
+});
+}
+
+  function initialize2() {
+    // The source video.
+    video = document.getElementById("v");
+    width = video.width;
+    height = video.height;
+
+    // The target canvas.
+    var canvas = document.getElementById("c");
+    context = canvas.getContext("2d");
+
+    // The bpm meter
+    bpm = document.getElementById("bpm");
+
+    // Get the webcam's stream.
+    if (navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia(constraints)
+        .then(startStream)
+        .catch(console.error)
+    } else {
+      navigator.getUserMedia(constraints, startStream, function () {});
+    }
+  }
+
+  function startStream(stream) {
+    video.srcObject = stream;
+    video.play();
+    // Ready! Let's start drawing.
+    requestAnimationFrame(draw);
+  }
+
+  function draw() {
+    try {
+      context.drawImage(video, 0, 0, width, height);
+    } catch (e) {
+      // The video may not be ready, yet.
+      return null;
+    }
+
+    var img = context.getImageData(0, 0, width, height);
+    var data = img.data;
+    var len = data.length;
+    var j = 0, n = 0, byte = 0;
+    for (var y=0;y<height;y++) {
+      for (var x=0;x<width;x++) {
+        var c = (data[j] + data[j+1] + data[j+2]) / 3;
+        c = c*2 + DITHER[x&1][y&1]*64 - 256;
+        c = (c>=128) ? 255 : 0;
+        data[j] = data[j+1] = data[j+2] = c;
+        // write to our 1 bit bmp
+        byte = byte<<1;
+        if (c) byte |= 1;
+        if (n&7 == 7) {
+          bmp[n>>3] = byte;
+          byte = 0;
+        }
+        // inc copunters
+        j += 4;
+        n++;
+      }
+    }
+    context.putImageData(img, 0,0);
+
+    // Wait for the next frame.
+    requestAnimationFrame(draw);
+  }
+
+  function printerWrite(d) {
+    function sender(resolve, reject) {
+      if (d.length) {
+        printerWriteChar.writeValue(new Uint8Array(d.buffer,0,20)).then(function() {
+          sender(resolve, reject);
+        }).catch(reject);
+        d = new Uint8Array(d.buffer, 20);
+      } else
+        resolve();
+    }
+    return new Promise(sender);
+  }
+
+  function printerWriteBMP() {
+    const width = 256,height=256;
+    var d = new Uint8Array(8+bmp.length+1);
+    d[0] = 29;  // Print raster bitmap
+    d[1] = 118; // Print raster bitmap
+    d[2] = 48; // Print raster bitmap
+    d[3] = 0;  // Normal 203.2 DPI
+    d[4] = width>>3;
+    d[5] = 0;
+    d[6] = height&255;
+    d[7] = height>>8;
+    d.set(bmp,8);
+    d[d.length-1] = 10; // newline
+    printerWrite(d);
+  };
+
+  addEventListener("DOMContentLoaded", initialize);
+  document.getElementById("shutter").addEventListener("click", function() {
+    if (printer===undefined) {
+      navigator.bluetooth.requestDevice(BLE_OPTIONS)
+        .then((device) => {
+          console.log(`Found BLE device: ${device.name}`);
+          return device.gatt.connect();
+        }).then(function(g) {
+          printer = g;
+          console.log(`Connected`);
+          return g.getPrimaryService("000018f0-0000-1000-8000-00805f9b34fb");
+        }).then(function(s) {
+          return s.getCharacteristic("00002af1-0000-1000-8000-00805f9b34fb");
+        }).then(function(c) {
+          printerWriteChar = c;
+          console.log(`Found characteristics - ready!`);
+          printerWriteBMP();
+        }).catch((error) => console.error(`Something went wrong. ${error}`));
+    }
+});
+  </script>
+  </body>
+</html>
