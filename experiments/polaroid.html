@@ -34,22 +34,7 @@ let BLE_OPTIONS = {
   ]
 };
 
-
-function initialize() {
-  navigator.mediaDevices.enumerateDevices().then(function(devices) {
-    devices.forEach(function(device) {
-      console.log(device.kind + ": " + device.label +
-                  " id = " + device.deviceId/*, JSON.stringify(device,null,2)*/);
-      if (device.kind=="videoinput" /*&& constraints.video===true*/)
-        constraints.video = { optional: [{sourceId: device.deviceId}, { fillLightMode: "on" }] };
-    });
-    initialize2();
-  }).catch(function(err) {
-    console.log(err.name + ": " + err.message);
-  });
-}
-
-  function initialize2() {
+  function initialize() {
     // The source video.
     video = document.getElementById("v");
     width = video.width;
@@ -57,7 +42,7 @@ function initialize() {
 
     // The target canvas.
     var canvas = document.getElementById("c");
-    context = canvas.getContext("2d");
+    context = canvas.getContext("2d", { willReadFrequently:true });
 
     // The bpm meter
     bpm = document.getElementById("bpm");
