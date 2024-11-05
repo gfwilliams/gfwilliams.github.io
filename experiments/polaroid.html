@@ -137,7 +137,7 @@ let BLE_OPTIONS = {
       navigator.bluetooth.requestDevice(BLE_OPTIONS)
         .then((device) => {
           console.log(`Found BLE device: ${device.name}`);
-          device.on('gattserverdisconnected', function(reason) {
+          device.addEventListener('gattserverdisconnected', function(reason) {
             console.log("Disconnected ",reason);
             printer = undefined;
             printerWriteChar = undefined;
