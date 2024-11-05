@@ -21,7 +21,7 @@ http://creativecommons.org/publicdomain/zero/1.0/
   <script>
 var video, width, height, context;
 const IMAGESIZE = 240;
-var bmp = new Uint8Array(IMAGESIZE*IMAGESIZE >> 3); // our 1 bit bmp
+var bmp = new Uint8Array((IMAGESIZE*IMAGESIZE) >> 3); // our 1 bit bmp
 var printer, printerWriteChar;
 var constraints = {video: { facingMode: 'user' }, audio:false};
 const DITHER = [
@@ -116,12 +116,14 @@ function initialize() {
   }
 
   function printerWrite(d) {
+
     function sender(resolve, reject) {
       if (d.length) {
-        printerWriteChar.writeValue(new Uint8Array(d.buffer,0,20)).then(function() {
+        var v = d.slice(0,20);
+        d = d.slice(20);
+        printerWriteChar.writeValue(v).then(function() {
           sender(resolve, reject);
         }).catch(reject);
-        d = new Uint8Array(d.buffer, 20);
       } else
         resolve();
     }
