@@ -12,8 +12,8 @@ http://creativecommons.org/publicdomain/zero/1.0/
   </head>
   <body>
     <p>Allow this website to use your webcam and turn on a <a href="https://www.espruino.com/BLE+Printers">Bluetooth printer</a>, then click the 🔴 button.</p>
-    <video id="v" width="160" height="160" style="display:none" muted></video>
-    <canvas id="c" width="160" height="160"></canvas>
+    <video id="v" width="240" height="240" style="display:none" muted></video>
+    <canvas id="c" width="240" height="240"></canvas>
     <button id="shutter" style="font-size:100px;vertical-align:top;margin-top:70px;"">🔴</button>
     <br/>
 
@@ -79,7 +79,7 @@ let BLE_OPTIONS = {
     for (var y=0;y<height;y++) {
       for (var x=0;x<width;x++) {
         var c = (data[j] + data[j+1] + data[j+2]) / 3;
-        c = c*2 + DITHER[x&1][y&1]*64 - 256;
+        c = (c*3 >> 1) + DITHER[x&1][y&1]*64 - 200;
         c = (c>=128) ? 255 : 0;
         data[j] = data[j+1] = data[j+2] = c;
         // write to our 1 bit bmp
@@ -121,7 +121,7 @@ let BLE_OPTIONS = {
     d[0] = 29;  // Print raster bitmap
     d[1] = 118; // Print raster bitmap
     d[2] = 48; // Print raster bitmap
-    d[3] = 3;  // Quad (100 DPI)
+    d[3] = 0;  // Default (200 DPI)
     d[4] = width>>3;
     d[5] = 0;
     d[6] = height&255;
