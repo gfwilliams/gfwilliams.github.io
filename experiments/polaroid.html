@@ -12,15 +12,16 @@ http://creativecommons.org/publicdomain/zero/1.0/
   </head>
   <body>
     <p>Allow this website to use your webcam and turn on a <a href="https://www.espruino.com/BLE+Printers">Bluetooth printer</a>, then click the 🔴 button.</p>
-    <video id="v" width="256" height="256" style="display:none" muted></video>
-    <canvas id="c" width="256" height="256"></canvas>
+    <video id="v" width="240" height="240" style="display:none" muted></video>
+    <canvas id="c" width="240" height="240"></canvas>
     <button id="shutter" style="font-size:100px;vertical-align:top;margin-top:70px;"">🔴</button>
     <br/>
 
     <p><a href="https://github.com/gfwilliams/gfwilliams.github.io/blob/master/experiments/polaroid.html">GitHub</a></p>
   <script>
 var video, width, height, context;
-var bmp = new Uint8Array(256*256 >> 3); // our 1 bit bmp
+const IMAGESIZE = 240;
+var bmp = new Uint8Array(IMAGESIZE*IMAGESIZE >> 3); // our 1 bit bmp
 var printer, printerWriteChar;
 var constraints = {video: true, audio:false};
 const DITHER = [
@@ -128,7 +129,7 @@ navigator.mediaDevices.enumerateDevices().then(function(devices) {
   }
 
   function printerWriteBMP() {
-    const width = 256,height=256;
+    const width = IMAGESIZE, height=IMAGESIZE;
     var d = new Uint8Array(8+bmp.length+1);
     d[0] = 29;  // Print raster bitmap
     d[1] = 118; // Print raster bitmap
