@@ -8,7 +8,7 @@ http://creativecommons.org/publicdomain/zero/1.0/
 -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=480, initial-scale=1">
-    <title>Black and white Polaroid</title>
+    <title>Polaroid</title>
   </head>
   <body>
     <p>Allow this website to use your webcam and turn on a <a href="https://www.espruino.com/BLE+Printers">Bluetooth printer</a>, then click the 🔴 button.</p>
@@ -85,7 +85,7 @@ let BLE_OPTIONS = {
         // write to our 1 bit bmp
         byte = byte<<1;
         if (c) byte |= 1;
-        if (n&7 == 7) {
+        if ((n&7) == 7) {
           bmp[n>>3] = byte;
           byte = 0;
         }
@@ -133,10 +133,15 @@ let BLE_OPTIONS = {
 
   addEventListener("DOMContentLoaded", initialize);
   document.getElementById("shutter").addEventListener("click", function() {
-    if (printer===undefined) {
+    if (printerWriteChar===undefined) {
       navigator.bluetooth.requestDevice(BLE_OPTIONS)
         .then((device) => {
           console.log(`Found BLE device: ${device.name}`);
+          device.on('gattserverdisconnected', function(reason) {
+            console.log("Disconnected ",reason);
+            printer = undefined;
+            printerWriteChar = undefined;
+          });
           return device.gatt.connect();
         }).then(function(g) {
           printer = g;
@@ -149,6 +154,8 @@ let BLE_OPTIONS = {
           console.log(`Found characteristics - ready!`);
           printerWriteBMP();
         }).catch((error) => console.error(`Something went wrong. ${error}`));
+    } else {
+      printerWriteBMP();
     }
 });
   </script>
