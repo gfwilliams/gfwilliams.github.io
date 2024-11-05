@@ -104,8 +104,8 @@ let BLE_OPTIONS = {
 
     function sender(resolve, reject) {
       if (d.length) {
-        var v = d.slice(0,20);
-        d = d.slice(20);
+        var v = d.slice(0,512);
+        d = d.slice(512);
         printerWriteChar.writeValue(v).then(function() {
           sender(resolve, reject);
         }).catch(reject);
@@ -117,7 +117,7 @@ let BLE_OPTIONS = {
 
   function printerWriteBMP() {
     const width = IMAGESIZE, height=IMAGESIZE;
-    var d = new Uint8Array(8+bmp.length+1);
+    var d = new Uint8Array(8+bmp.length+1+2);
     d[0] = 29;  // Print raster bitmap
     d[1] = 118; // Print raster bitmap
     d[2] = 48; // Print raster bitmap
@@ -127,6 +127,8 @@ let BLE_OPTIONS = {
     d[6] = height&255;
     d[7] = height>>8;
     d.set(bmp,8);
+    d[d.length-3] = 10; // newline
+    d[d.length-2] = 10; // newline
     d[d.length-1] = 10; // newline
     printerWrite(d);
   };
