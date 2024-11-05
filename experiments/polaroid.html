@@ -12,15 +12,15 @@ http://creativecommons.org/publicdomain/zero/1.0/
   </head>
   <body>
     <p>Allow this website to use your webcam and turn on a <a href="https://www.espruino.com/BLE+Printers">Bluetooth printer</a>, then click the 🔴 button.</p>
-    <video id="v" width="180" height="180" style="display:none" muted></video>
-    <canvas id="c" width="180" height="180"></canvas>
+    <video id="v" width="160" height="160" style="display:none" muted></video>
+    <canvas id="c" width="160" height="160"></canvas>
     <button id="shutter" style="font-size:100px;vertical-align:top;margin-top:70px;"">🔴</button>
     <br/>
 
     <p><a href="https://github.com/gfwilliams/gfwilliams.github.io/blob/master/experiments/polaroid.html">GitHub</a></p>
   <script>
 var video, width, height, context;
-const IMAGESIZE = 180;
+const IMAGESIZE = 160;
 var bmp = new Uint8Array((IMAGESIZE*IMAGESIZE) >> 3); // our 1 bit bmp
 var printer, printerWriteChar;
 var constraints = {video: { facingMode: 'user', aspectRatio: {ideal: 1} }, audio:false};
