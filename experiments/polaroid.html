@@ -7,23 +7,23 @@ http://creativecommons.org/publicdomain/zero/1.0/
 
 -->
     <meta charset="utf-8">
-    <meta name="viewport" content="width=480, initial-scale=1">
+    <meta name="viewport" content="width=720, initial-scale=1">
     <title>Polaroid</title>
   </head>
   <body>
     <p>Allow this website to use your webcam and turn on a <a href="https://www.espruino.com/BLE+Printers">Bluetooth printer</a>, then click the 🔴 button.</p>
-    <video id="v" width="240" height="240" style="display:none" muted></video>
-    <canvas id="c" width="240" height="240"></canvas>
+    <video id="v" width="360" height="360" style="display:none" muted></video>
+    <canvas id="c" width="360" height="360"></canvas>
     <button id="shutter" style="font-size:100px;vertical-align:top;margin-top:70px;"">🔴</button>
     <br/>
 
     <p><a href="https://github.com/gfwilliams/gfwilliams.github.io/blob/master/experiments/polaroid.html">GitHub</a></p>
   <script>
 var video, width, height, context;
-const IMAGESIZE = 240;
+const IMAGESIZE = 360;
 var bmp = new Uint8Array((IMAGESIZE*IMAGESIZE) >> 3); // our 1 bit bmp
 var printer, printerWriteChar;
-var constraints = {video: { facingMode: 'user' }, audio:false};
+var constraints = {video: { facingMode: 'user', aspectRatio: {ideal: 1} }, audio:false};
 const DITHER = [
       [ 0, 2 ],
       [ 3, 1 ]
@@ -84,7 +84,7 @@ let BLE_OPTIONS = {
         data[j] = data[j+1] = data[j+2] = c;
         // write to our 1 bit bmp
         byte = byte<<1;
-        if (c) byte |= 1;
+        if (c==0) byte |= 1;
         if ((n&7) == 7) {
           bmp[n>>3] = byte;
           byte = 0;
