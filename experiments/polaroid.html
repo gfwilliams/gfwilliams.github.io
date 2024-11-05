@@ -23,7 +23,7 @@ var video, width, height, context;
 const IMAGESIZE = 240;
 var bmp = new Uint8Array(IMAGESIZE*IMAGESIZE >> 3); // our 1 bit bmp
 var printer, printerWriteChar;
-var constraints = {video: true, audio:false};
+var constraints = {video: { facingMode: 'user' }, audio:false};
 const DITHER = [
       [ 0, 2 ],
       [ 3, 1 ]
@@ -36,17 +36,17 @@ let BLE_OPTIONS = {
 
 
 function initialize() {
-navigator.mediaDevices.enumerateDevices().then(function(devices) {
-  devices.forEach(function(device) {
-    console.log(device.kind + ": " + device.label +
-                " id = " + device.deviceId/*, JSON.stringify(device,null,2)*/);
-    if (device.kind=="videoinput" /*&& constraints.video===true*/)
-      constraints.video = { optional: [{sourceId: device.deviceId}, { fillLightMode: "on" }] };
+  navigator.mediaDevices.enumerateDevices().then(function(devices) {
+    devices.forEach(function(device) {
+      console.log(device.kind + ": " + device.label +
+                  " id = " + device.deviceId/*, JSON.stringify(device,null,2)*/);
+      if (device.kind=="videoinput" /*&& constraints.video===true*/)
+        constraints.video = { optional: [{sourceId: device.deviceId}, { fillLightMode: "on" }] };
+    });
+    initialize2();
+  }).catch(function(err) {
+    console.log(err.name + ": " + err.message);
   });
-  initialize2();
-}).catch(function(err) {
-  console.log(err.name + ": " + err.message);
-});
 }
 
   function initialize2() {
