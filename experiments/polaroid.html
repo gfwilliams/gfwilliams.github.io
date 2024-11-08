@@ -12,21 +12,23 @@ http://creativecommons.org/publicdomain/zero/1.0/
   </head>
   <body>
     <p>Allow this website to use your webcam and turn on a <a href="https://www.espruino.com/BLE+Printers">Bluetooth printer</a>, then click the 🔴 button.</p>
-    <video id="v" width="240" height="240" style="display:none" muted></video>
-    <canvas id="c" width="240" height="240"></canvas>
+    <video id="v" width="400" height="400" style="display:none" muted></video>
+    <canvas id="c" width="400" height="400"></canvas>
     <button id="shutter" style="font-size:100px;vertical-align:top;margin-top:70px;"">🔴</button>
     <br/>
 
     <p><a href="https://github.com/gfwilliams/gfwilliams.github.io/blob/master/experiments/polaroid.html">GitHub</a></p>
   <script>
 var video, width, height, context;
-const IMAGESIZE = 240;
+const IMAGESIZE = 400;
 var bmp = new Uint8Array((IMAGESIZE*IMAGESIZE) >> 3); // our 1 bit bmp
 var printer, printerWriteChar;
 var constraints = {video: { facingMode: 'user', aspectRatio: {ideal: 1} }, audio:false};
 const DITHER = [
-      [ 0, 2 ],
-      [ 3, 1 ]
+      [ 0, 8, 2,10],
+      [12, 4,14, 6],
+      [ 3,11, 1, 9],
+      [15, 7,13, 5]
     ];
 let BLE_OPTIONS = {
   filters: [
@@ -79,7 +81,7 @@ let BLE_OPTIONS = {
     for (var y=0;y<height;y++) {
       for (var x=0;x<width;x++) {
         var c = (data[j] + data[j+1] + data[j+2]) / 3;
-        c = 128 + (c-128)*1.3 + (DITHER[x&1][y&1] - 1.5)*32;
+        c = 140 + (c-128)*1 + (DITHER[x&3][y&3] - 7.5)*9;
         c = (c>=128) ? 255 : 0;
         data[j] = data[j+1] = data[j+2] = c;
         // write to our 1 bit bmp
@@ -101,11 +103,11 @@ let BLE_OPTIONS = {
   }
 
   function printerWrite(d) {
-
+    const CHUNK = 100;
     function sender(resolve, reject) {
       if (d.length) {
-        var v = d.slice(0,20);
-        d = d.slice(20);
+        var v = d.slice(0,CHUNK);
+        d = d.slice(CHUNK);
         printerWriteChar.writeValue(v).then(function() {
           sender(resolve, reject);
         }).catch(reject);
@@ -116,6 +118,7 @@ let BLE_OPTIONS = {
   }
 
   function printerWriteBMP() {
+    document.getElementById("shutter").disabled = true
     const width = IMAGESIZE, height=IMAGESIZE;
     var d = new Uint8Array(8+bmp.length+1+2);
     d[0] = 29;  // Print raster bitmap
@@ -130,7 +133,9 @@ let BLE_OPTIONS = {
     d[d.length-3] = 10; // newline
     d[d.length-2] = 10; // newline
     d[d.length-1] = 10; // newline
-    printerWrite(d);
+    return printerWrite(d).then(() => {
+      document.getElementById("shutter").disabled = false;
+    });
   };
 
   addEventListener("DOMContentLoaded", initialize);
@@ -154,7 +159,6 @@ let BLE_OPTIONS = {
         }).then(function(c) {
           printerWriteChar = c;
           console.log(`Found characteristics - ready!`);
-          printerWriteBMP();
         }).catch((error) => console.error(`Something went wrong. ${error}`));
     } else {
       printerWriteBMP();
