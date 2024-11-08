@@ -30,6 +30,7 @@ const DITHER = [
       [ 3,11, 1, 9],
       [15, 7,13, 5]
     ];
+const SEND_IMAGE = true; // send using the image command, rather than line by line (which is nice but appears to leave gaps!)
 let BLE_OPTIONS = {
   filters: [
     { services: ["000018f0-0000-1000-8000-00805f9b34fb"] }
@@ -77,23 +78,25 @@ let BLE_OPTIONS = {
     var img = context.getImageData(0, 0, width, height);
     var data = img.data;
     var len = data.length;
-    var j = 0, n = 0, byte = 0;
-    for (var y=0;y<height;y++) {
+    var n = 0, byte = 0;
+    for (var y=0;y<height;y+=(SEND_IMAGE?1:8)) {
       for (var x=0;x<width;x++) {
-        var c = (data[j] + data[j+1] + data[j+2]) / 3;
-        c = 140 + (c-128)*1 + (DITHER[x&3][y&3] - 7.5)*9;
-        c = (c>=128) ? 255 : 0;
-        data[j] = data[j+1] = data[j+2] = c;
-        // write to our 1 bit bmp
-        byte = byte<<1;
-        if (c==0) byte |= 1;
-        if ((n&7) == 7) {
-          bmp[n>>3] = byte;
-          byte = 0;
+        for (var yi=0;yi<(SEND_IMAGE?1:8);yi++) {
+          var j = (x + ((y+yi)*width))*4;
+          var c = (data[j] + data[j+1] + data[j+2]) / 3;
+          c = 140 + (c-128)*1 + (DITHER[x&3][(y+yi)&3] - 7.5)*9;
+          c = (c>=128) ? 255 : 0;
+          data[j] = data[j+1] = data[j+2] = c;
+          // write to our 1 bit bmp
+          byte = byte<<1;
+          if (c==0) byte |= 1;
+          if ((n&7) == 7) {
+            bmp[n>>3] = byte;
+            byte = 0;
+          }
+          // inc counters
+          n++;
         }
-        // inc copunters
-        j += 4;
-        n++;
       }
     }
     context.putImageData(img, 0,0);
@@ -120,20 +123,37 @@ let BLE_OPTIONS = {
   function printerWriteBMP() {
     document.getElementById("shutter").disabled = true
     const width = IMAGESIZE, height=IMAGESIZE;
-    var d = new Uint8Array(8+bmp.length+1+2);
-    d[0] = 29;  // Print raster bitmap
-    d[1] = 118; // Print raster bitmap
-    d[2] = 48; // Print raster bitmap
-    d[3] = 0;  // Default (200 DPI)
-    d[4] = width>>3;
-    d[5] = 0;
-    d[6] = height&255;
-    d[7] = height>>8;
-    d.set(bmp,8);
-    d[d.length-3] = 10; // newline
-    d[d.length-2] = 10; // newline
-    d[d.length-1] = 10; // newline
-    return printerWrite(d).then(() => {
+    var promise;
+    if (SEND_IMAGE) {
+      var d = new Uint8Array(8+bmp.length+1+2);
+      d[0] = 29;  // Print raster bitmap
+      d[1] = 118; // Print raster bitmap
+      d[2] = 48; // Print raster bitmap
+      d[3] = 0;  // Default (200 DPI)
+      d[4] = width>>3;
+      d[5] = 0;
+      d[6] = height&255;
+      d[7] = height>>8;
+      d.set(bmp,8);
+      d[d.length-3] = 10; // newline
+      d[d.length-2] = 10; // newline
+      d[d.length-1] = 10; // newline
+      promise = printerWrite(d);
+    } else {
+      promise = Promise.resolve();
+      for (var y=0;y<height;y+=8) { // this leaves lines between
+        let d = new Uint8Array(5+width+1);
+        d[0] = 27;
+        d[1] = 42;
+        d[2] = 0;
+        d[3] = width&255;
+        d[4] = width>>8;
+        d.set(new Uint8Array(bmp.buffer,(y>>3)*width,width),5);
+        d[d.length-1] = 10; // newline
+        promise = promise.then(() => printerWrite(d));
+      }
+    }
+    return promise.then(() => {
       document.getElementById("shutter").disabled = false;
     });
   };
@@ -148,6 +168,7 @@ let BLE_OPTIONS = {
             console.log("Disconnected ",reason);
             printer = undefined;
             printerWriteChar = undefined;
+            document.getElementById("shutter").disabled = false;
           });
           return device.gatt.connect();
         }).then(function(g) {
