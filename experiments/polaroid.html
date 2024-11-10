@@ -106,7 +106,7 @@ let BLE_OPTIONS = {
   }
 
   function printerWrite(d) {
-    const CHUNK = 100;
+    const CHUNK = 20;
     function sender(resolve, reject) {
       if (d.length) {
         var v = d.slice(0,CHUNK);
